@@ -67,92 +67,69 @@ names(dat) <- gsub("_.*", "", names(dat))
 dat <- dat %>% 
   mutate(group = if_else(str_detect(name, "Bilingual"), "Bilingual", "Monolingual"),
          trial_type = sub(".*? ", "", dat$name))
-  
 
 # define vectors of electrodes
 N200_elec <-  c("A13", "B14", "B11") # 210 - 310 ms
 N450_elec = c("A25", "B21", "B22", "B28") # ???
 SP_elec = c("A15", "A24", "B20", "B21") # 400 - 800ms
 
+plot_fun <- function(trials, elec, component_name) {
 dat %>% 
-  filter(name == "Bilinguals Congruent") %>% 
-  select(pid, ms, all_of(N200_elec)) %>%
-  pivot_longer(., cols = all_of(N200_elec), names_to = "electrode", values_to = "mv") %>%
-  group_by(pid, ms) %>% 
+  filter(trial_type %in% trials) %>% 
+  select(pid, trial_type, group, ms, all_of(elec)) %>%
+  pivot_longer(., cols = all_of(elec), names_to = "electrode", values_to = "mv") %>%
+  group_by(pid, group, trial_type, ms) %>% 
   summarize(mv = mean(mv, na.rm = TRUE)) %>% 
-  group_by(ms) %>% 
+  group_by(group, trial_type, ms) %>% 
   mutate(avg_mv = mean(mv, na.rm = TRUE)) %>% 
   ggplot() +
   geom_line(aes(ms, mv, group = pid), alpha = 0.3) +
-  geom_line(aes(ms, avg_mv), color = "blue", size = 1.5) +
+  geom_line(aes(ms, avg_mv), color = "red", size = 1.2) +
+  facet_grid(vars(trial_type), vars(group)) +
   theme_classic() +
   geom_vline(xintercept = 0, linetype = "dashed") +
   geom_hline(yintercept = 0, linetype = "dashed") +
   labs(x = "Time (ms)",
-       y = expression(paste("Amplitude ( ",mu,"V)")))
-  
-
-erp_plot_fun <- function(cluster, comp_name, time_window_low, time_window_high) {
-  # baseline <- full_df %>%
-  #   select(all_of(cluster),  trial_type:prop_trials, TRIOGroup) %>%
-  #   filter(trial_type %in% c("pure-incongruent-CT", "pure-congruent-CT")) %>%
-  #   pivot_longer(., cols = all_of(cluster), names_to = "electrode", values_to = "mv") %>%
-  #   filter(ms < 0) %>%
-  #   group_by(pid, trial_type, electrode) %>%
-  #   summarize(baseline = mean(mv, na.rm = TRUE))
-  full_df %>%
-    select(all_of(cluster),  trial_type:prop_trials, TRIOGroup) %>%
-    filter(trial_type %in% c("pure-incongruent-CT", "pure-congruent-CT")) %>%
-    pivot_longer(., cols = cluster, names_to = "electrode", values_to = "mv") %>%
-    # full_join(., baseline, by = c("pid", "trial_type", "electrode")) %>%
-    # mutate(mv = mv - baseline) %>%
-    group_by(TRIOGroup, trial_type, ms) %>%
-    summarize(mv = mean(mv, na.rm = TRUE)) %>%
-    ggplot(., aes(ms, mv, linetype = trial_type, color = TRIOGroup)) +
-    geom_line(size = 1.1) +
-    geom_vline(xintercept = 0, linetype = "dashed") +
-    geom_vline(xintercept = c(time_window_low, time_window_high), linetype = "solid", size = 1.05) +
-    geom_hline(yintercept = 0, linetype = "dashed") +
-    labs(x = "Time (ms)",
-         y = expression(paste("Amplitude ( ",mu,"V)")),
-         title = paste("Average", comp_name, "Waveforms")) +
-    theme_classic() +
-    theme(axis.title = element_text(size = 16),
-          axis.text = element_text(size = 12),
-          legend.title = element_text(size = 16),
-          legend.text = element_text(size = 12),
-          legend.key.size = unit(2, "line"),
-          plot.title = element_text(hjust = 0.5),
-          title = element_text(size = 16)) +
-    scale_linetype_discrete(name = "Trial Type",
-                            breaks = c("pure-incongruent-CT", "pure-congruent-CT"),
-                            labels = c("Incongruent", "Congruent")) +
-    # scale_color_manual(name = "Group", values = c("green", "blue", "red"))
-    scale_color_viridis_d(name = "Group",
-                          labels = c("Control",
-                                     "Apprehension",
-                                     "Anxious Arousal")) +
-    ylim(-3, 6)
+#       y = expression(paste("Amplitude ( ",mu,"V)")),
+       y = "Amplitude",
+       title = paste(component_name, "Variability Waveform Plots")) +
+  theme(axis.title = element_text(size = 16),
+        axis.text = element_text(size = 12),
+        legend.title = element_text(size = 16),
+        legend.text = element_text(size = 12),
+        legend.key.size = unit(2, "line"),
+        plot.title = element_text(hjust = 0.5),
+        title = element_text(size = 16),
+        strip.text.x = element_text(size = 14),
+        strip.text.y = element_text(size = 14))
 }
-#'
+
 #' Use pmap to iterate plotting function over list of parameters.
 #+ iterate and plot
-plots <- pmap(list(cluster = list(N200_elec,
-                                  N450_elec,
-                                  SP_elec),
-                   comp_name = c("N200",
-                                 "N450",
-                                 "SP"),
-                   time_window_low = c(220,
-                                       360,
-                                       600),
-                   time_window_high = c(320,
-                                        472,
-                                        900)),
-              .f = erp_plot_fun)
-#'
+plots <- pmap(list(trials = list(c("Congruent", "Incongruent"),
+                                 c("Mixed Congruent", "Mixed Incongruent"),
+                                 c("Congruent", "Incongruent"),
+                                 c("Mixed Congruent", "Mixed Incongruent"),
+                                 c("Switch Yes", "Switch No")),
+                   elec = list(N200_elec,
+                               N200_elec,
+                               N450_elec,
+                               N450_elec,
+                               SP_elec),
+                   component_name = c("N200",
+                                      "N200",
+                                      "N450",
+                                      "N450",
+                                      "SP")
+                   ),
+              .f = plot_fun)
+  
 #' save images to workspace
 #+ save the images
-map2(plots, c("N200", "N450", "SP"), ~{
-  ggsave(plot = .x, filename = here("Images", paste0(.y, ".png")), device = "png", width = 8, height = 5, scale = 1.5)
+map2(plots, c("N200 congruent and incongruent",
+              "N200 mixed congruent and incongruent",
+              "N450 congruent and incongruent",
+              "N450 mixed congruent and incongruent",
+              "SP switch yes and no"), ~ {
+  ggsave(plot = .x, filename = here("images", paste0(.y, ".png")), device = "png", width = 8, height = 5, scale = 1.5)
 })
