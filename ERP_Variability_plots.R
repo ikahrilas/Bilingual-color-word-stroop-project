@@ -73,22 +73,25 @@ N200_elec <- c("A13", "B14", "B11") # 210 - 310 ms
 N450_elec <- c("A25", "B21", "B22", "B28") # ???
 SP_elec <- c("A15", "A24", "B20", "B21") # 400 - 800ms
 
-plot_fun <- function(trials, elec, component_name) {
+plot_fun <- function(trials, elec, component_name, time_min, time_max) {
 dat %>% 
-  filter(trial_type %in% trials) %>% 
+  filter(trial_type %in% trials,
+         between(ms, -200, 1000)) %>% 
   select(pid, trial_type, group, ms, all_of(elec)) %>%
   pivot_longer(., cols = all_of(elec), names_to = "electrode", values_to = "mv") %>%
   group_by(pid, group, trial_type, ms) %>% 
   summarize(mv = mean(mv, na.rm = TRUE)) %>% 
   group_by(group, trial_type, ms) %>% 
-  mutate(avg_mv = mean(mv, na.rm = TRUE)) %>% 
+  mutate(avg_mv = mean(mv, na.rm = TRUE),
+         color = if_else(str_detect(trial_type, "Congruent") | str_detect(trial_type, "Yes"), "green", "red")) %>% 
   ggplot() +
   geom_line(aes(ms, mv, group = pid), alpha = 0.3) +
-  geom_line(aes(ms, avg_mv), color = "red", size = 1.2) +
+  geom_line(aes(ms, avg_mv, color = color), size = 1.2) +
   facet_grid(vars(trial_type), vars(group)) +
   theme_classic() +
   geom_vline(xintercept = 0, linetype = "dashed") +
   geom_hline(yintercept = 0, linetype = "dashed") +
+  annotate("rect", xmin = time_min, xmax = time_max, ymin = -Inf, ymax = Inf, alpha = .15) +
   labs(x = "Time (ms)",
        y = expression(paste("Amplitude ( ",mu,"V)")),
        title = paste(component_name, "Waveform Variability Plots")) +
@@ -100,7 +103,8 @@ dat %>%
         plot.title = element_text(hjust = 0.5),
         title = element_text(size = 16),
         strip.text.x = element_text(size = 14),
-        strip.text.y = element_text(size = 14))
+        strip.text.y = element_text(size = 14),
+        legend.position = "none")
 }
 
 #' Use pmap to iterate plotting function over list of parameters.
@@ -118,7 +122,17 @@ plots <- pmap(list(trials = list(c("Congruent", "Incongruent"),
                                       "N200",
                                       "N450",
                                       "N450",
-                                      "SP")
+                                      "SP"),
+                   time_min = c(210,
+                                210,
+                                400,
+                                400,
+                                400),
+                   time_max = c(310,
+                                310,
+                                500,
+                                500,
+                                800)
                    ),
               .f = plot_fun)
   
