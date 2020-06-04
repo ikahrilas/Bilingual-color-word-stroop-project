@@ -92,7 +92,7 @@ dat %>%
   labs(x = "Time (ms)",
 #       y = expression(paste("Amplitude ( ",mu,"V)")),
        y = "Amplitude",
-       title = paste(component_name, "Variability Waveform Plots")) +
+       title = paste(component_name, "Waveform Variability Plots")) +
   theme(axis.title = element_text(size = 16),
         axis.text = element_text(size = 12),
         legend.title = element_text(size = 16),
