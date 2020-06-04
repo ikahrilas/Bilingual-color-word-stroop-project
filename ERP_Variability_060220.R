@@ -19,33 +19,17 @@
 # N450 electrodes = (A25, B21, B22, B28) N450 Time window = ???
 # SP electrodes = (A15, A24, B20, B21) SP Time Window = 400 - 800ms
 
-
-
 #----------------------------------------------------------------------------------------------------------
 #Open up necessary packages 
 library (tidyverse)
-library (plyr)
-library (readr)
-library (ggplot2)
-library (ggpubr)
 library(readxl)
-library(stringr)
-library (erpR)
+library(here)
+library(glue)
 
-#----------------------------------------------------------------------------------------------------------
-#
-#Load in files from datapath 
-#need to figure out how to write a loop on reading in all folders in a single file! 
-#ALSO check out the code that Ian has already written for this on GITHUB
-#THINK MORE ABOUT HOW TO ORGANIZE DATASET AND WHAT FINAL PLOTS NEED TO LOOK LIKE!
-##
-##
-# Set working directory for Bilinguals Congruent
-setwd("/Users/rsilton/Google Drive/WELL LAB /R/ERP_Variability_Plots/EMSE Files for Becky/Bilinguals Congruent")
-
-# Create file list for the folder
-file_list <- list.files(path = wd)
-
+# names for all bilingual congruent data files
+bilingual_congruent_file_names <- list.files(here("data", "Bilinguals Congruent"))
+# all path names to read in data
+bilingual_congruent <- str_glue("/Users/ian/tmp/Bilingual-color-word-stroop-project/data/Bilinguals Congruent/{bilingual_congruent_file_names}")
 # Read in a single file...
 Bilinguals_Congruent <- read_excel("1009 congruent.xlsx")
 
