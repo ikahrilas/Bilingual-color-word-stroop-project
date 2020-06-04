@@ -105,7 +105,6 @@ dat %>%
 }
 
 #' Use pmap to iterate plotting function over list of parameters.
-#+ iterate and plot
 plots <- pmap(list(trials = list(c("Congruent", "Incongruent"),
                                  c("Mixed Congruent", "Mixed Incongruent"),
                                  c("Congruent", "Incongruent"),
@@ -124,8 +123,7 @@ plots <- pmap(list(trials = list(c("Congruent", "Incongruent"),
                    ),
               .f = plot_fun)
   
-#' save images to workspace
-#+ save the images
+# save images to workspace
 map2(plots, c("N200 congruent and incongruent",
               "N200 mixed congruent and incongruent",
               "N450 congruent and incongruent",
