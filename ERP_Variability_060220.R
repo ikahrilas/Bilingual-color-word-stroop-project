@@ -63,10 +63,34 @@ dat <- all_files %>%
 # clean up electrode names
 names(dat) <- gsub("_.*", "", names(dat))
 
+# create group and trial_type variables
+dat <- dat %>% 
+  mutate(group = if_else(str_detect(name, "Bilingual"), "Bilingual", "Monolingual"),
+         trial_type = sub(".*? ", "", dat$name))
+  
+
 # define vectors of electrodes
-N200_elec <-  c(A25, A26, A29, A30, A31, B23, B26, B27, B28, B29, B30), note this may change yet...N200 Time window = 210 - 300ms (this may also change)
-N450_elec = c(A25, B21, B22, B28) N450 Time window = ???
-SP_elec = c(A15, A24, B20, B21) SP Time Window = 400 - 800ms
+N200_elec <-  c("A13", "B14", "B11") # 210 - 310 ms
+N450_elec = c("A25", "B21", "B22", "B28") # ???
+SP_elec = c("A15", "A24", "B20", "B21") # 400 - 800ms
+
+dat %>% 
+  filter(name == "Bilinguals Congruent") %>% 
+  select(pid, ms, all_of(N200_elec)) %>%
+  pivot_longer(., cols = all_of(N200_elec), names_to = "electrode", values_to = "mv") %>%
+  group_by(pid, ms) %>% 
+  summarize(mv = mean(mv, na.rm = TRUE)) %>% 
+  group_by(ms) %>% 
+  mutate(avg_mv = mean(mv, na.rm = TRUE)) %>% 
+  ggplot() +
+  geom_line(aes(ms, mv, group = pid), alpha = 0.3) +
+  geom_line(aes(ms, avg_mv), color = "blue", size = 1.5) +
+  theme_classic() +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(x = "Time (ms)",
+       y = expression(paste("Amplitude ( ",mu,"V)")))
+  
 
 erp_plot_fun <- function(cluster, comp_name, time_window_low, time_window_high) {
   # baseline <- full_df %>%
