@@ -29,7 +29,7 @@ library(glue)
 folders <- str_subset(list.files(here("data")), "Time File", negate = TRUE)
 folder_paths <- glue("/Users/ian/tmp/Bilingual-color-word-stroop-project/data/{folders}/")
 
-# concenate all folder paths
+# concatenate all folder paths
 all_files <- c(glue("{folder_paths[1]}{list.files(folder_paths[1])}"),
                glue("{folder_paths[2]}{list.files(folder_paths[2])}"),
                glue("{folder_paths[3]}{list.files(folder_paths[3])}"),
