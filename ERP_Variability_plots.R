@@ -2,7 +2,6 @@
 #ERP_Variability.Rproj
 #Created by RLS on 05/30/20 
 #Last updated by IJK on 06/04/20
-#Google Drive/WELL Lab/R/ERP_Variability_Plots/ 
 #
 ## This script was created to make a data visualization displaying subject variability for ERPs per an editor's request: 
 # "Failing that, would it be possible to add a figure that plots, e.g., N2 and SP amplitude 
@@ -63,10 +62,11 @@ dat <- all_files %>%
 # clean up electrode names
 names(dat) <- gsub("_.*", "", names(dat))
 
-# create group and trial_type variables
+# create group and trial_type variables, convert amplitue to mV
 dat <- dat %>% 
   mutate(group = if_else(str_detect(name, "Bilingual"), "Bilingual", "Monolingual"),
-         trial_type = sub(".*? ", "", dat$name))
+         trial_type = sub(".*? ", "", dat$name),
+         across(.cols = A1:EXG2, .fns = ~.x * 10^6))
 
 # define vectors of electrodes
 N200_elec <- c("A13", "B14", "B11") # 210 - 310 ms
@@ -90,8 +90,7 @@ dat %>%
   geom_vline(xintercept = 0, linetype = "dashed") +
   geom_hline(yintercept = 0, linetype = "dashed") +
   labs(x = "Time (ms)",
-#       y = expression(paste("Amplitude ( ",mu,"V)")),
-       y = "Amplitude",
+       y = expression(paste("Amplitude ( ",mu,"V)")),
        title = paste(component_name, "Waveform Variability Plots")) +
   theme(axis.title = element_text(size = 16),
         axis.text = element_text(size = 12),
