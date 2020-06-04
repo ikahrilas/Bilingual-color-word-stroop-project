@@ -26,58 +26,32 @@ library(readxl)
 library(here)
 library(glue)
 
-# names for all bilingual congruent data files
-bilingual_congruent_file_names <- list.files(here("data", "Bilinguals Congruent"))
-# all path names to read in data
-bilingual_congruent <- str_glue("/Users/ian/tmp/Bilingual-color-word-stroop-project/data/Bilinguals Congruent/{bilingual_congruent_file_names}")
-# Read in a single file...
-Bilinguals_Congruent <- read_excel("1009 congruent.xlsx")
+# vector of folder path names
+folders <- str_subset(list.files(here("data")), "Time File", negate = TRUE)
+folder_paths <- glue("/Users/ian/tmp/Bilingual-color-word-stroop-project/data/{folders}/")
 
-#Create average of electodes for N200 (A25, A26, A29, A30, A31, B23, B26, B27, B28, B29, B30)
-# A25 = column 27
-# A26 = column 28
-# A29 = column 31
-# A30 = column 32
-# A31 = column 33
-# B23 = column 57
-# B26 = column 60
-# B27 = column 61
-# B28 = column 62
-# B29 = column 63
-# B30 = column 64
-# 
-# Create dataframe for electrode channels of interest OR figure out how to average across channnels of interest
-# THIS IS HOW YOU REFERENCE A COLUMN: Bilinguals_Congruent$A25
-Bilinguals_Congruent_N200 <- data.frame()
-# 
-Bilinguals_Congruent_N200 <- Bilinguals_Congruent$A25
-Bilinguals_Congruent_N200 <- Bilinguals_Congruent$A26
+# concenate all folder paths
+all_files <- c(glue("{folder_paths[1]}{list.files(folder_paths[1])}"),
+               glue("{folder_paths[2]}{list.files(folder_paths[2])}"),
+               glue("{folder_paths[3]}{list.files(folder_paths[3])}"),
+               glue("{folder_paths[4]}{list.files(folder_paths[4])}"),
+               glue("{folder_paths[5]}{list.files(folder_paths[5])}"),
+               glue("{folder_paths[6]}{list.files(folder_paths[6])}"),
+               glue("{folder_paths[7]}{list.files(folder_paths[7])}"),
+               glue("{folder_paths[8]}{list.files(folder_paths[8])}"),
+               glue("{folder_paths[9]}{list.files(folder_paths[9])}"),
+               glue("{folder_paths[10]}{list.files(folder_paths[10])}"),
+               glue("{folder_paths[11]}{list.files(folder_paths[11])}"),
+               glue("{folder_paths[12]}{list.files(folder_paths[12])}")
+               )
 
-#Create average of electrodes for N450 ???
-  Bilinguals_Congruent$A25
+# pre-allocate space
+dat <- as_tibble(matrix(data = NA_real_, nrow = 167232, ncol = 70))
 
-#Create average of electrodes for SP (A15, A24, B20, B21)
-#A15 = column 17 
-#A24 = column 26
-#B20 = column 54
-#B21 = column 55
-
-# Plot data
-ggplot (data=Bilinguals_Congruent)
-
-
-
-# Create Bilingual data frame
-#Bilinguals_Congruent_dataset <- data.frame()
-
-#for (i in 1:length(file_list))
-#{Bilinguals_Congruent_dataset <- read_excel(file_list[i])}
-
-
-
-
-
-#
-#Average data for electrodes of interest for each condition
-#
-# Plot averaged electrode data for each subject 
+# read in all data and make variables for participant id number and condition name
+dat <- all_files %>% 
+  map_dfr(~ {
+    read_excel(.x) %>% 
+      mutate(pid = as.numeric(str_extract(.x, "[0-9]+")),
+             name = basename(dirname(.x)))
+  })
