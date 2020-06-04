@@ -69,9 +69,9 @@ dat <- dat %>%
          trial_type = sub(".*? ", "", dat$name))
 
 # define vectors of electrodes
-N200_elec <-  c("A13", "B14", "B11") # 210 - 310 ms
-N450_elec = c("A25", "B21", "B22", "B28") # ???
-SP_elec = c("A15", "A24", "B20", "B21") # 400 - 800ms
+N200_elec <- c("A13", "B14", "B11") # 210 - 310 ms
+N450_elec <- c("A25", "B21", "B22", "B28") # ???
+SP_elec <- c("A15", "A24", "B20", "B21") # 400 - 800ms
 
 plot_fun <- function(trials, elec, component_name) {
 dat %>% 
