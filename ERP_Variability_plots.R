@@ -1,7 +1,7 @@
 #ERP_Variability.R
 #ERP_Variability.Rproj
 #Created by RLS on 05/30/20 
-#Last updated by RLS on 06/03/20
+#Last updated by IJK on 06/04/20
 #Google Drive/WELL Lab/R/ERP_Variability_Plots/ 
 #
 ## This script was created to make a data visualization displaying subject variability for ERPs per an editor's request: 
