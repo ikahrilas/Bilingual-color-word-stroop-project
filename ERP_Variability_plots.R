@@ -15,7 +15,7 @@
 # color for group. 3 different ERPs: N200, N450, SP. N200/N450 were selected for congruent/incongruent trials only. 
 # SP was selected for switch trials only. 
 # 
-# N200 electrodes = (A25, A26, A29, A30, A31, B23, B26, B27, B28, B29, B30), note this may change yet...N200 Time window = 210 - 300ms (this may also change)
+# N200 electrodes = A13, B14, B11
 # N450 electrodes = (A25, B21, B22, B28) N450 Time window = ???
 # SP electrodes = (A15, A24, B20, B21) SP Time Window = 400 - 800ms
 
