@@ -83,10 +83,12 @@ dat %>%
   summarize(mv = mean(mv, na.rm = TRUE)) %>% 
   group_by(group, trial_type, ms) %>% 
   mutate(avg_mv = mean(mv, na.rm = TRUE),
-         color = if_else(str_detect(trial_type, "Congruent") | str_detect(trial_type, "Yes"), "green", "red")) %>% 
+         color = if_else(str_detect(trial_type, "Congruent") | str_detect(trial_type, "No"), "green", "red")) %>% 
   ggplot() +
   geom_line(aes(ms, mv, group = pid), alpha = 0.3) +
   geom_line(aes(ms, avg_mv, color = color), size = 1.2) +
+  scale_color_manual(breaks = c("green", "red"),
+                     values=c("green", "red")) +
   facet_grid(vars(trial_type), vars(group)) +
   theme_classic() +
   geom_vline(xintercept = 0, linetype = "dashed") +
