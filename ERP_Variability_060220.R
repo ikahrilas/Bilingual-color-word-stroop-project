@@ -20,7 +20,7 @@
 # SP electrodes = (A15, A24, B20, B21) SP Time Window = 400 - 800ms
 
 #----------------------------------------------------------------------------------------------------------
-#Open up necessary packages 
+# load packages
 library (tidyverse)
 library(readxl)
 library(here)
@@ -47,11 +47,88 @@ all_files <- c(glue("{folder_paths[1]}{list.files(folder_paths[1])}"),
 
 # pre-allocate space
 dat <- as_tibble(matrix(data = NA_real_, nrow = 167232, ncol = 70))
+#read in time variable
+time <- read_excel(here("data", "time_var.xlsx")) %>% 
+  rename(ms = Time)
 
 # read in all data and make variables for participant id number and condition name
 dat <- all_files %>% 
   map_dfr(~ {
     read_excel(.x) %>% 
       mutate(pid = as.numeric(str_extract(.x, "[0-9]+")),
-             name = basename(dirname(.x)))
+             name = basename(dirname(.x))) %>% 
+      select(-`871`, -`68`) %>% 
+      bind_cols(., time)
   })
+# clean up electrode names
+names(dat) <- gsub("_.*", "", names(dat))
+
+# define vectors of electrodes
+N200_elec <-  c(A25, A26, A29, A30, A31, B23, B26, B27, B28, B29, B30), note this may change yet...N200 Time window = 210 - 300ms (this may also change)
+N450_elec = c(A25, B21, B22, B28) N450 Time window = ???
+SP_elec = c(A15, A24, B20, B21) SP Time Window = 400 - 800ms
+
+erp_plot_fun <- function(cluster, comp_name, time_window_low, time_window_high) {
+  # baseline <- full_df %>%
+  #   select(all_of(cluster),  trial_type:prop_trials, TRIOGroup) %>%
+  #   filter(trial_type %in% c("pure-incongruent-CT", "pure-congruent-CT")) %>%
+  #   pivot_longer(., cols = all_of(cluster), names_to = "electrode", values_to = "mv") %>%
+  #   filter(ms < 0) %>%
+  #   group_by(pid, trial_type, electrode) %>%
+  #   summarize(baseline = mean(mv, na.rm = TRUE))
+  full_df %>%
+    select(all_of(cluster),  trial_type:prop_trials, TRIOGroup) %>%
+    filter(trial_type %in% c("pure-incongruent-CT", "pure-congruent-CT")) %>%
+    pivot_longer(., cols = cluster, names_to = "electrode", values_to = "mv") %>%
+    # full_join(., baseline, by = c("pid", "trial_type", "electrode")) %>%
+    # mutate(mv = mv - baseline) %>%
+    group_by(TRIOGroup, trial_type, ms) %>%
+    summarize(mv = mean(mv, na.rm = TRUE)) %>%
+    ggplot(., aes(ms, mv, linetype = trial_type, color = TRIOGroup)) +
+    geom_line(size = 1.1) +
+    geom_vline(xintercept = 0, linetype = "dashed") +
+    geom_vline(xintercept = c(time_window_low, time_window_high), linetype = "solid", size = 1.05) +
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    labs(x = "Time (ms)",
+         y = expression(paste("Amplitude ( ",mu,"V)")),
+         title = paste("Average", comp_name, "Waveforms")) +
+    theme_classic() +
+    theme(axis.title = element_text(size = 16),
+          axis.text = element_text(size = 12),
+          legend.title = element_text(size = 16),
+          legend.text = element_text(size = 12),
+          legend.key.size = unit(2, "line"),
+          plot.title = element_text(hjust = 0.5),
+          title = element_text(size = 16)) +
+    scale_linetype_discrete(name = "Trial Type",
+                            breaks = c("pure-incongruent-CT", "pure-congruent-CT"),
+                            labels = c("Incongruent", "Congruent")) +
+    # scale_color_manual(name = "Group", values = c("green", "blue", "red"))
+    scale_color_viridis_d(name = "Group",
+                          labels = c("Control",
+                                     "Apprehension",
+                                     "Anxious Arousal")) +
+    ylim(-3, 6)
+}
+#'
+#' Use pmap to iterate plotting function over list of parameters.
+#+ iterate and plot
+plots <- pmap(list(cluster = list(N200_elec,
+                                  N450_elec,
+                                  SP_elec),
+                   comp_name = c("N200",
+                                 "N450",
+                                 "SP"),
+                   time_window_low = c(220,
+                                       360,
+                                       600),
+                   time_window_high = c(320,
+                                        472,
+                                        900)),
+              .f = erp_plot_fun)
+#'
+#' save images to workspace
+#+ save the images
+map2(plots, c("N200", "N450", "SP"), ~{
+  ggsave(plot = .x, filename = here("Images", paste0(.y, ".png")), device = "png", width = 8, height = 5, scale = 1.5)
+})
