@@ -91,6 +91,7 @@ dat %>%
                      values=c("green", "red")) +
   facet_grid(vars(trial_type), vars(group)) +
   theme_classic() +
+  scale_x_continuous(breaks=c(-200, 0, 200, 400, 600, 800, 1000)) +
   geom_vline(xintercept = 0, linetype = "dashed") +
   geom_hline(yintercept = 0, linetype = "dashed") +
   annotate("rect", xmin = time_min, xmax = time_max, ymin = -Inf, ymax = Inf, alpha = .15) +
