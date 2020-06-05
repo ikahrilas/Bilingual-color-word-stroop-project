@@ -1,7 +1,7 @@
 #ERP_Variability.R
 #ERP_Variability.Rproj
 #Created by RLS on 05/30/20 
-#Last updated by IJK on 06/04/20
+#Last updated by IJK on 06/05/20
 #
 ## This script was created to make a data visualization displaying subject variability for ERPs per an editor's request: 
 # "Failing that, would it be possible to add a figure that plots, e.g., N2 and SP amplitude 
@@ -16,7 +16,7 @@
 # 
 # N200 electrodes = A13, B14, B11
 # N450 electrodes = (A25, B21, B22, B28) N450 Time window = ???
-# SP electrodes = (A15, A24, B20, B21) SP Time Window = 400 - 800ms
+# SP electrodes = (A25, A24, B20, B21) SP Time Window = 400 - 800ms
 
 #----------------------------------------------------------------------------------------------------------
 # load packages
@@ -71,7 +71,7 @@ dat <- dat %>%
 # define vectors of electrodes
 N200_elec <- c("A13", "B14", "B11") # 210 - 310 ms
 N450_elec <- c("A25", "B21", "B22", "B28") # ???
-SP_elec <- c("A15", "A24", "B20", "B21") # 400 - 800ms
+SP_elec <- c("A25", "A24", "B20", "B21") # 400 - 800ms
 
 plot_fun <- function(trials, elec, component_name, time_min, time_max) {
 dat %>% 
