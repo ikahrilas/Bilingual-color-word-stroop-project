@@ -25,6 +25,8 @@ library(readxl)
 library(here)
 library(glue)
 library(patchwork)
+library(emmeans)
+library(lmerTest)
 
 # vector of folder path names
 folders <- str_subset(list.files(here("data")), "Time File", negate = TRUE)
@@ -227,7 +229,8 @@ dat %>%
   
 #---- field trip style plots
 ### to do: find exact standard errors and p values!
-field_trip_plot <- function(trials, elec, component_name, time_min, time_max) {
+field_trip_plot <- function(trials, elec, component_name, time_min, time_max, height_1, height_2,
+                            std_error_1, std_error_2, std_error_3, p_1, p_2, p_3) {
 mono <- dat %>% 
   filter(trial_type %in% trials,
          group == "Monolingual",
@@ -240,16 +243,16 @@ mono <- dat %>%
   mutate(avg_mv = mean(mv, na.rm = TRUE)) %>% 
   ggplot() +
   geom_line(aes(ms, avg_mv, color = trial_type), size = 1.2) +
-  geom_ribbon(aes(x = ms, ymin = avg_mv - sd(mv)/sqrt(16), ymax = avg_mv + sd(mv)/sqrt(16), group = trial_type), alpha = 0.3) +
+  geom_ribbon(aes(x = ms, ymin = avg_mv - std_error_1, ymax = avg_mv + std_error_1, group = trial_type), alpha = 0.3) +
   scale_color_manual(breaks = trials,
                      values=c("blue", "red")) +
   theme_classic() +
   scale_x_continuous(breaks=c(-200, 0, 200, 400, 600, 800, 1000)) +
   geom_vline(xintercept = 0, linetype = "solid") +
   geom_hline(yintercept = 0, linetype = "solid") +
-  geom_segment(x = time_min, xend = time_max, y = 6.75, yend = 6.75) +
-  annotate("rect", fill = "purple", xmin = time_min, xmax = time_max, ymin = -Inf, ymax = 6.75, alpha = .15) +
-  annotate(geom = "text", x = (time_min + time_max) / 2, y = 7.25, label = "italic(p) == XX", parse = TRUE) +
+  geom_segment(x = time_min, xend = time_max, y = height_1, yend = height_1) +
+  annotate("rect", fill = "purple", xmin = time_min, xmax = time_max, ymin = -Inf, ymax = height_1, alpha = .15) +
+  annotate(geom = "text", x = (time_min + time_max) / 2, y = height_1 + .75, label = paste("italic(p)", p_1), parse = TRUE) +
   labs(x = "Time (ms)",
        y = expression(paste("Amplitude (",mu,"V)"))) +
   guides(color = guide_legend(title = "Condition")) +
@@ -260,7 +263,7 @@ mono <- dat %>%
         legend.title = element_blank(),
         legend.text = element_text(size = 10),
         legend.key.size = unit(1, "line"),
-        legend.position = c(0.85, 1),
+        legend.position = c(0.9, 1),
         plot.title = element_text(hjust = 0),
         title = element_text(size = 12),
         strip.text.x = element_text(size = 12, hjust = 0),
@@ -278,16 +281,16 @@ bi <- dat %>%
   mutate(avg_mv = mean(mv, na.rm = TRUE)) %>% 
   ggplot() +
   geom_line(aes(ms, avg_mv, color = trial_type), size = 1.2) +
-  geom_ribbon(aes(x = ms, ymin = avg_mv - sd(mv)/sqrt(16), ymax = avg_mv + sd(mv)/sqrt(16), group = trial_type), alpha = 0.3) +
+  geom_ribbon(aes(x = ms, ymin = avg_mv - std_error_2, ymax = avg_mv + std_error_2, group = trial_type), alpha = 0.3) +
   scale_color_manual(breaks = trials,
                      values=c("blue", "red")) +
   theme_classic() +
   scale_x_continuous(breaks=c(-200, 0, 200, 400, 600, 800, 1000)) +
   geom_vline(xintercept = 0, linetype = "solid") +
   geom_hline(yintercept = 0, linetype = "solid") +
-  geom_segment(x = time_min, xend = time_max, y = 6.75, yend = 6.75) +
-  annotate("rect", fill = "purple", xmin = time_min, xmax = time_max, ymin = -Inf, ymax = 6.75, alpha = .15) +
-  annotate(geom = "text", x = (time_min + time_max) / 2, y = 7.25, label = "italic(p) == XX", parse = TRUE) +
+  geom_segment(x = time_min, xend = time_max, y = height_1, yend = height_1) +
+  annotate("rect", fill = "purple", xmin = time_min, xmax = time_max, ymin = -Inf, ymax = height_1, alpha = .15) +
+  annotate(geom = "text", x = (time_min + time_max) / 2, y = height_1 + .75, label = paste("italic(p)", p_2), parse = TRUE) +
   labs(x = "Time (ms)",
        y = expression(paste("Amplitude (",mu,"V)"))) +
   guides(color = guide_legend(title = "Condition")) +
@@ -298,7 +301,7 @@ bi <- dat %>%
         legend.title = element_blank(),
         legend.text = element_text(size = 10),
         legend.key.size = unit(1, "line"),
-        legend.position = c(0.85, 1),
+        legend.position = c(0.9, 1),
         plot.title = element_text(hjust = 0),
         title = element_text(size = 12),
         strip.text.x = element_text(size = 12, hjust = 0),
@@ -311,20 +314,20 @@ int <- dat %>%
   pivot_longer(., cols = all_of(elec), names_to = "electrode", values_to = "mv") %>% 
   group_by(trial_type, group, ms) %>% 
   summarize(mv = mean(mv, na.rm = TRUE)) %>% 
-  pivot_wider(names_from = trial_type, values_from = mv, names_glue = "{trial_type}_mv") %>% 
-  mutate(diff_mv = Congruent_mv - Incongruent_mv) %>% 
+  pivot_wider(names_from = trial_type, values_from = mv) %>% 
+  mutate(diff_mv = get(trials[1]) - get(trials[2])) %>% 
   ggplot() +
   geom_line(aes(ms, diff_mv, color = group), size = 1.2) +
-  geom_ribbon(aes(x = ms, ymin = diff_mv - 0.34220, ymax = diff_mv + 0.34220, group = group), alpha = 0.3) +
+  geom_ribbon(aes(x = ms, ymin = diff_mv - std_error_3, ymax = diff_mv + std_error_3, group = group), alpha = 0.3) +
   scale_color_manual(breaks = c("Monolingual", "Bilingual"),
                      values=c("green", "purple")) +
   theme_classic() +
   scale_x_continuous(breaks=c(-200, 0, 200, 400, 600, 800, 1000)) +
   geom_vline(xintercept = 0, linetype = "solid") +
   geom_hline(yintercept = 0, linetype = "solid") +
-  geom_segment(x = time_min, xend = time_max, y = 2, yend = 2) +
-  annotate("rect", fill = "purple", xmin = time_min, xmax = time_max, ymin = -Inf, ymax = 2, alpha = .15) +
-  annotate(geom = "text", x = (time_min + time_max) / 2, y = 2.40, label = "italic(p) == XX", parse = TRUE) +
+  geom_segment(x = time_min, xend = time_max, y = height_2, yend = height_2) +
+  annotate("rect", fill = "purple", xmin = time_min, xmax = time_max, ymin = -Inf, ymax = height_2, alpha = .15) +
+  annotate(geom = "text", x = (time_min + time_max) / 2, y = height_2 + .90, label = paste("italic(p)", p_3), parse = TRUE) +
   labs(x = "Time (ms)",
        y = expression(paste("Amplitude (",mu,"V)"))) +
   guides(color = guide_legend(title = paste(trials[1], "-", trials[2]))) +
@@ -335,18 +338,42 @@ int <- dat %>%
         legend.title = element_text(size = 10),
         legend.text = element_text(size = 10),
         legend.key.size = unit(1, "line"),
-        legend.position = c(0.85, 1),
+        legend.position = c(0.9, 1.05),
         plot.title = element_text(hjust = 0),
         title = element_text(size = 12),
         strip.text.x = element_text(size = 12, hjust = 0),
         strip.text.y = element_text(size = 12, hjust = 0))
-(mono / bi / int) + plot_annotation(title = paste("Average", component_name, "Waveforms"),
+
+mono <- mono + ylim(-2, height_1 + 1)
+bi <- bi + ylim(-2, height_1 + 1)
+int <- int + ylim(-4, height_1 + 1)
+(mono / bi  / int ) + plot_annotation(title = paste("Average", component_name, "Waveforms"),
                                     theme = theme(plot.title = element_text(hjust = 0.5,
                                                                             size = 14)),
                                     tag_levels = "A")
 }
-ggsave(plot = N450_plot, filename = here("images", "field trip plots", paste0("N450", ".png")), device = "png", width = 4, height = 5, scale = 1.5)
 
+mod <- lmer(SP ~ group*trial_type + (1|pid), dat = dat_analysis %>% filter(trial_type %in% c("Switch No", "Switch Yes")))
+summary(mod)
+anova(mod)
+(emmeans(mod, pairwise ~ trial_type | group))
+
+SP_plot <- field_trip_plot(trials = c("Switch No", "Switch Yes"), 
+                                              elec = SP_elec, 
+                                              component_name = "SP", 
+                                              time_min = 400, 
+                                              time_max = 800,
+                                              height_1 = 7,
+                                              height_2 = 5,
+                                              std_error_1 = .34,
+                                              std_error_2 = .34,
+                                              std_error_3 = .48,
+                                              p_1 = "== .319",
+                                              p_2 = "== .867",
+                                              p_3 = "== .410")
+
+ggsave(plot = SP_plot, filename = here("images", "field trip plots", paste0("SP", ".png")), 
+       device = "png", width = 5, height = 5, scale = 1.5)
 #---- box plots
 # prep data
 N200 <- dat %>%
@@ -372,10 +399,9 @@ SP <- dat %>%
 dat_analysis <- full_join(N200, N450, by = c("pid", "group", "trial_type")) %>% 
   left_join(SP, by = c("pid", "group", "trial_type"))
 
-library(lmerTest)
-mod <- lmer(N200 ~ group * trial_type + (1|pid), dat = dat_analysis)
+mod <- lmer(N200 ~ group * trial_type + (1|pid), dat = filter(dat_analysis, trial_type %in% c("Congruent", "Incongruent")))
 summary(mod)
-anova(mod, ddf = "Kenward-Roger")
+(emmeans(mod, pairwise ~ group | trial_type))
 
 
 full_join(N200, N450, by = c("pid", "group", "trial_type")) %>% 
@@ -390,3 +416,6 @@ mutate(trial_type = if_else(str_detect(trial_type, "Congruent") | str_detect(tri
 # boxplots
 full_dat %>% 
   ggplot(aes())
+trials <- c("Mixed Congruent", "Mixed Incongruent")
+elec <- N200_elec
+
