@@ -338,7 +338,7 @@ int <- dat %>%
         legend.title = element_text(size = 10),
         legend.text = element_text(size = 10),
         legend.key.size = unit(1, "line"),
-        legend.position = c(0.9, 1.05),
+        legend.position = c(0.8, 1),
         plot.title = element_text(hjust = 0),
         title = element_text(size = 12),
         strip.text.x = element_text(size = 12, hjust = 0),
@@ -353,26 +353,26 @@ int <- int + ylim(-4, height_1 + 1)
                                     tag_levels = "A")
 }
 
-mod <- lmer(SP ~ group*trial_type + (1|pid), dat = dat_analysis %>% filter(trial_type %in% c("Switch No", "Switch Yes")))
+mod <- lmer(N200 ~ group*trial_type + (1|pid), dat = dat_analysis %>% filter(trial_type %in% c("Mixed Congruent", "Mixed Incongruent")))
 summary(mod)
 anova(mod)
 (emmeans(mod, pairwise ~ trial_type | group))
 
-SP_plot <- field_trip_plot(trials = c("Switch No", "Switch Yes"), 
-                                              elec = SP_elec, 
-                                              component_name = "SP", 
-                                              time_min = 400, 
-                                              time_max = 800,
-                                              height_1 = 7,
-                                              height_2 = 5,
-                                              std_error_1 = .34,
-                                              std_error_2 = .34,
-                                              std_error_3 = .48,
-                                              p_1 = "== .319",
-                                              p_2 = "== .867",
-                                              p_3 = "== .410")
+N200_mixed <- field_trip_plot(trials = c("Mixed Congruent", "Mixed Incongruent"), 
+                                              elec = N200_elec, 
+                                              component_name = "N200", 
+                                              time_min = 210, 
+                                              time_max = 320,
+                                              height_1 = 3,
+                                              height_2 = 3,
+                                              std_error_1 = .19,
+                                              std_error_2 = .19,
+                                              std_error_3 = .269,
+                                              p_1 = "== .197",
+                                              p_2 = "== .745",
+                                              p_3 = "== .253")
 
-ggsave(plot = SP_plot, filename = here("images", "field trip plots", paste0("SP", ".png")), 
+ggsave(plot = N200_mixed, filename = here("images", "field trip plots", paste0("N200_mixed", ".png")), 
        device = "png", width = 5, height = 5, scale = 1.5)
 #---- box plots
 # prep data
@@ -399,23 +399,66 @@ SP <- dat %>%
 dat_analysis <- full_join(N200, N450, by = c("pid", "group", "trial_type")) %>% 
   left_join(SP, by = c("pid", "group", "trial_type"))
 
-mod <- lmer(N200 ~ group * trial_type + (1|pid), dat = filter(dat_analysis, trial_type %in% c("Congruent", "Incongruent")))
-summary(mod)
-(emmeans(mod, pairwise ~ group | trial_type))
 
-
-full_join(N200, N450, by = c("pid", "group", "trial_type")) %>% 
+full_dat <- full_join(N200, N450, by = c("pid", "group", "trial_type")) %>% 
   left_join(SP, by = c("pid", "group", "trial_type")) %>% 
   pivot_longer(cols = c(N200, N450, SP), names_to = "Component", values_to = "mv") %>% 
-  pivot_wider(names_from = trial_type, values_from = mv, names_glue = "{trial_type}_mv")
+  pivot_wider(names_from = trial_type, values_from = mv, names_glue = "{trial_type}_mv") %>% 
+  mutate(con_inc_diff = Congruent_mv - Incongruent_mv,
+         mixed_diff = `Mixed Congruent_mv` - `Mixed Incongruent_mv`,
+         switch_diff = `Switch No_mv` - `Switch Yes_mv`)
 
-
-mutate(trial_type = if_else(str_detect(trial_type, "Congruent") | str_detect(trial_type, "Switch No"), 
-                            "No Conflict", 
-                            "Conflict"))
 # boxplots
-full_dat %>% 
-  ggplot(aes())
-trials <- c("Mixed Congruent", "Mixed Incongruent")
-elec <- N200_elec
+full_dat %>%
+  mutate(group = factor(group, levels = c("Monolingual", "Bilingual"))) %>% 
+  ggplot(aes(x = Component, y = con_inc_diff, fill = Component)) +
+  geom_boxplot() +
+  geom_point() +
+  geom_line(aes(group = pid), alpha = 0.3) +
+  labs(y = "Congruent - Incongruent") +
+  theme(legend.position = "none") + 
+  facet_wrap(~group, ncol = 1) +
+  theme(axis.title = element_text(size = 12),
+        axis.text = element_text(size = 12),
+        strip.background = element_blank(),
+        strip.text.x = element_text(size = 12, hjust = 0.5),
+        strip.text.y = element_text(size = 12, hjust = 0.5))
 
+ggsave(filename = here("images", "boxplots", paste0("con_inc", ".png")), 
+       device = "png", width = 3, height = 5, scale = 1.5)
+
+full_dat %>%
+  mutate(group = factor(group, levels = c("Monolingual", "Bilingual"))) %>% 
+  ggplot(aes(x = Component, y = mixed_diff, fill = Component)) +
+  geom_boxplot() +
+  geom_point() +
+  geom_line(aes(group = pid), alpha = 0.3) +
+  labs(y = "Mixed Congruent - Mixed Incongruent") +
+  theme(legend.position = "none") + 
+  facet_wrap(~group, ncol = 1) +
+  theme(axis.title = element_text(size = 12),
+        axis.text = element_text(size = 12),
+        strip.background = element_blank(),
+        strip.text.x = element_text(size = 12, hjust = 0.5),
+        strip.text.y = element_text(size = 12, hjust = 0.5))
+
+ggsave(filename = here("images", "boxplots", paste0("mixed", ".png")), 
+       device = "png", width = 3, height = 5, scale = 1.5)
+
+full_dat %>%
+  mutate(group = factor(group, levels = c("Monolingual", "Bilingual"))) %>% 
+  ggplot(aes(x = Component, y = switch_diff, fill = Component)) +
+  geom_boxplot() +
+  geom_point() +
+  geom_line(aes(group = pid), alpha = 0.3) +
+  labs(y = "Switch No - Switch Yes") +
+  theme(legend.position = "none") + 
+  facet_wrap(~group, ncol = 1) +
+  theme(axis.title = element_text(size = 12),
+        axis.text = element_text(size = 12),
+        strip.background = element_blank(),
+        strip.text.x = element_text(size = 12, hjust = 0.5),
+        strip.text.y = element_text(size = 12, hjust = 0.5))
+
+ggsave(filename = here("images", "boxplots", paste0("switch", ".png")), 
+       device = "png", width = 3, height = 5, scale = 1.5)
