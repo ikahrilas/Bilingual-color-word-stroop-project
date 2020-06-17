@@ -230,7 +230,7 @@ dat %>%
 #---- field trip style plots
 ### to do: find exact standard errors and p values!
 field_trip_plot <- function(trials, elec, component_name, time_min, time_max, height_1, height_2,
-                            std_error_1, std_error_2, std_error_3, p_1, p_2, p_3) {
+                            height_3, std_error_1, std_error_2, std_error_3, p_1, p_2, p_3) {
 mono <- dat %>% 
   filter(trial_type %in% trials,
          group == "Monolingual",
@@ -263,7 +263,7 @@ mono <- dat %>%
         legend.title = element_blank(),
         legend.text = element_text(size = 10),
         legend.key.size = unit(1, "line"),
-        legend.position = c(0.9, 1),
+        legend.position = c(0.9, 1.2),
         plot.title = element_text(hjust = 0),
         title = element_text(size = 12),
         strip.text.x = element_text(size = 12, hjust = 0),
@@ -301,7 +301,7 @@ bi <- dat %>%
         legend.title = element_blank(),
         legend.text = element_text(size = 10),
         legend.key.size = unit(1, "line"),
-        legend.position = c(0.9, 1),
+        legend.position = c(0.9, 1.2),
         plot.title = element_text(hjust = 0),
         title = element_text(size = 12),
         strip.text.x = element_text(size = 12, hjust = 0),
@@ -325,9 +325,9 @@ int <- dat %>%
   scale_x_continuous(breaks=c(-200, 0, 200, 400, 600, 800, 1000)) +
   geom_vline(xintercept = 0, linetype = "solid") +
   geom_hline(yintercept = 0, linetype = "solid") +
-  geom_segment(x = time_min, xend = time_max, y = height_2, yend = height_2) +
-  annotate("rect", fill = "purple", xmin = time_min, xmax = time_max, ymin = -Inf, ymax = height_2, alpha = .15) +
-  annotate(geom = "text", x = (time_min + time_max) / 2, y = height_2 + .90, label = paste("italic(p)", p_3), parse = TRUE) +
+  geom_segment(x = time_min, xend = time_max, y = height_3, yend = height_3) +
+  annotate("rect", fill = "purple", xmin = time_min, xmax = time_max, ymin = -Inf, ymax = 5, alpha = .15) +
+  annotate(geom = "text", x = (time_min + time_max) / 2, y = height_3 + .90, label = paste("italic(p)", p_3), parse = TRUE) +
   labs(x = "Time (ms)",
        y = expression(paste("Amplitude (",mu,"V)"))) +
   guides(color = guide_legend(title = paste(trials[1], "-", trials[2]))) +
@@ -338,7 +338,7 @@ int <- dat %>%
         legend.title = element_text(size = 10),
         legend.text = element_text(size = 10),
         legend.key.size = unit(1, "line"),
-        legend.position = c(0.8, 1),
+        legend.position = c(0.80, 1.15),
         plot.title = element_text(hjust = 0),
         title = element_text(size = 12),
         strip.text.x = element_text(size = 12, hjust = 0),
@@ -353,26 +353,27 @@ int <- int + ylim(-4, height_1 + 1)
                                     tag_levels = "A")
 }
 
-mod <- lmer(N200 ~ group*trial_type + (1|pid), dat = dat_analysis %>% filter(trial_type %in% c("Mixed Congruent", "Mixed Incongruent")))
+mod <- lmer(SP ~ group*trial_type + (1|pid), dat = dat_analysis %>% filter(trial_type %in% c("Mixed Congruent", "Mixed Incongruent")))
 summary(mod)
 anova(mod)
 (emmeans(mod, pairwise ~ trial_type | group))
 
-N200_mixed <- field_trip_plot(trials = c("Mixed Congruent", "Mixed Incongruent"), 
-                                              elec = N200_elec, 
-                                              component_name = "N200", 
-                                              time_min = 210, 
-                                              time_max = 320,
-                                              height_1 = 3,
-                                              height_2 = 3,
-                                              std_error_1 = .19,
-                                              std_error_2 = .19,
-                                              std_error_3 = .269,
-                                              p_1 = "== .197",
-                                              p_2 = "== .745",
-                                              p_3 = "== .253")
+sp_mixed <- field_trip_plot(trials = c("Mixed Congruent", "Mixed Incongruent"), 
+                                              elec = SP_elec, 
+                                              component_name = "SP", 
+                                              time_min = 400, 
+                                              time_max = 800,
+                                              height_1 = 7,
+                                              height_2 = 7,
+                                              height_3 = 5,
+                                              std_error_1 = .354,
+                                              std_error_2 = .354,
+                                              std_error_3 = .501,
+                                              p_1 = "== .239",
+                                              p_2 = "== .397",
+                                              p_3 = "== .810")
 
-ggsave(plot = N200_mixed, filename = here("images", "field trip plots", paste0("N200_mixed", ".png")), 
+ggsave(plot = sp_mixed, filename = here("images", "field trip plots", paste0("SP_mixed", ".png")), 
        device = "png", width = 5, height = 5, scale = 1.5)
 #---- box plots
 # prep data
