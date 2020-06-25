@@ -106,7 +106,7 @@ dat %>%
   geom_hline(yintercept = 0, linetype = "dashed") +
   annotate("rect", xmin = time_min, xmax = time_max, ymin = -Inf, ymax = Inf, alpha = .15) +
   labs(x = "Time (ms)",
-       y = expression(paste("Amplitude (",mu,"V)")),
+       y = expression(paste("Amplitude ( ",mu,"V)")),
        title = paste(component_name, "Waveform Variability Plots")) +
   theme(axis.title = element_text(size = 16),
         axis.text = element_text(size = 12),
