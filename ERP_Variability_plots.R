@@ -87,12 +87,18 @@ dat %>%
   summarize(mv = mean(mv, na.rm = TRUE)) %>% 
   group_by(group, trial_type, ms) %>% 
   mutate(avg_mv = mean(mv, na.rm = TRUE),
-         color = if_else(str_detect(trial_type, "Congruent") | str_detect(trial_type, "No"), "green", "red")) %>% 
+         color = if_else(str_detect(trial_type, "Congruent") | str_detect(trial_type, "No"), "green", "red"),
+         se = sd(mv)/sqrt(length(unique(pid)))) %>% 
   ggplot() +
-  geom_line(aes(ms, mv, group = pid), alpha = 0.3) +
-  geom_line(aes(ms, avg_mv, color = color), size = 1.2) +
+  geom_line(aes(ms, mv, group = pid), alpha = 0.1) +
+  geom_line(aes(ms, avg_mv, color = color), size = 1) +
   scale_color_manual(breaks = c("green", "red"),
                      values=c("green", "red")) +
+  geom_ribbon(aes(x = ms, 
+                  ymin = avg_mv - se, 
+                  ymax = avg_mv + se),
+              fill = "purple",
+              alpha = 0.4) +
   facet_grid(vars(trial_type), vars(group)) +
   theme_classic() +
   scale_x_continuous(breaks=c(-200, 0, 200, 400, 600, 800, 1000)) +
@@ -100,7 +106,7 @@ dat %>%
   geom_hline(yintercept = 0, linetype = "dashed") +
   annotate("rect", xmin = time_min, xmax = time_max, ymin = -Inf, ymax = Inf, alpha = .15) +
   labs(x = "Time (ms)",
-       y = expression(paste("Amplitude ( ",mu,"V)")),
+       y = expression(paste("Amplitude (",mu,"V)")),
        title = paste(component_name, "Waveform Variability Plots")) +
   theme(axis.title = element_text(size = 16),
         axis.text = element_text(size = 12),
@@ -487,3 +493,15 @@ full_dat %>%
 
 ggsave(filename = here("images", "boxplots", paste0("switch", ".png")), 
        device = "png", width = 3, height = 5, scale = 1.5)
+
+dat %>% 
+  filter(between(ms, -200, 1000)) %>% 
+  select(pid, trial_type, group, ms, all_of(N200_elec)) %>%
+  pivot_longer(., cols = all_of(N200_elec), names_to = "electrode", values_to = "mv") %>%
+  group_by(pid, group, trial_type, ms) %>% 
+  summarize(mv = mean(mv, na.rm = TRUE)) %>% 
+  group_by(group, trial_type, ms) %>% 
+  mutate(avg_mv = mean(mv, na.rm = TRUE),
+         color = if_else(str_detect(trial_type, "Congruent") | str_detect(trial_type, "No"), "green", "red"),
+         se = sd(mv)/sqrt(length(unique(pid)))) %>% 
+  arrange(ms, group, trial_type)
