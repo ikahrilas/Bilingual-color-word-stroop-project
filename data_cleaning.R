@@ -187,9 +187,10 @@ aov_mod <- anova(mod)
 mod %>% 
   emmeans(~ Group * condition) %>% 
   contrast("pairwise", by = "Group") %>% 
+  summary(by = NULL, adjust = "mvt")
 
 
-contrast(emmeans(mod, "condition"))
+sidcontrast(emmeans(mod, "condition"))
 
 aov_mod <- aov(SP_updated ~ Group + condition + Group*condition + Error(PID/condition), data = SP_updated_amp %>% filter(condition %in% c("congruent", "incongruent")))
 
