@@ -159,4 +159,41 @@ N450_long <- full_join(N450_amp, N450_small_amp, by = c("PID", "Group", "conditi
   full_join(., N450_small_latency, by = c("PID", "Group", "condition")) %>% 
   full_join(., N450_frac_latency, by = c("PID", "Group", "condition"))
 
-# 
+# deal with SP - for now, just run intended analysis of updated SP
+SP <- dat %>% 
+  select(PID, Group, contains("SP"))
+
+SP_updated_amp <- SP %>% 
+  select(PID, Group, contains("amp")) %>%
+  select(PID, Group, contains("update")) %>% 
+  select(PID, Group, !contains("small")) %>% 
+  select(PID, Group, !contains("large")) %>% 
+  pivot_longer(cols = Updated_SP_Congruent_Amp:Updated_SP_Switch_Yes_Amp,
+               names_to = "condition",
+               values_to = "SP_updated") %>% 
+  mutate(condition = tolower(condition),
+         condition = str_remove(condition, "updated_sp_"),
+         condition = str_remove(condition, "_amp"))
+
+library(rstatix)
+
+SP_updated_amp <- SP_updated_amp %>% 
+  mutate(Group = as.factor(Group),
+         condition = as.factor(condition))
+
+mod <- lmer(SP_updated ~ Group*condition + (1|PID), data = SP_updated_amp %>% filter(condition %in% c("congruent", "incongruent")))
+aov_mod <- anova(mod)
+
+mod %>% 
+  emmeans(~ Group * condition) %>% 
+  contrast("pairwise", by = "Group") %>% 
+
+
+contrast(emmeans(mod, "condition"))
+
+aov_mod <- aov(SP_updated ~ Group + condition + Group*condition + Error(PID/condition), data = SP_updated_amp %>% filter(condition %in% c("congruent", "incongruent")))
+
+poo <- SP_updated_amp %>% 
+         filter(Group == 2)
+
+pairwise.t.test(poo$SP_updated, poo$condition, paired = TRUE, p.adjust.method = "fdr")
