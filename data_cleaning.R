@@ -1,8 +1,6 @@
 # load packages
 library(tidyverse)
 library(haven)
-library(lmerTest)
-library(emmeans)
 
 # read in data
 dat <- read_sav("data/Analyses/dat_6.26.2020.sav")
@@ -105,8 +103,8 @@ N200_long <- left_join(N200_amp, N200_amp_updated, by = c("PID", "Group", "condi
   left_join(.,N200_new_frac_lat, by = c("PID", "Group", "condition"))
 
 # deal with N450 data
-N200 <- dat %>% 
-  select(PID, Group, contains("N200"))
+N450 <- dat %>% 
+  select(PID, Group, contains("N450"))
 
 N200_amp <- N200 %>% 
   select(PID, Group, contains("amp")) %>% 
