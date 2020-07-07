@@ -84,36 +84,29 @@ SP <- dat_int %>%
 
 SP_updated_amp <- SP %>% 
   select(PID, Group, contains("amp")) %>%
-  select(PID, Group, contains("update")) %>% 
-  select(PID, Group, !contains("small")) %>% 
-  select(PID, Group, !contains("large")) %>% 
   pivot_longer(cols = Updated_SP_Congruent_Amp:Updated_SP_Switch_Yes_Amp,
                names_to = "condition",
-               values_to = "SP_updated") %>% 
+               values_to = "SP_mean_amp") %>% 
   mutate(condition = tolower(condition),
          condition = str_remove(condition, "updated_sp_"),
          condition = str_remove(condition, "_amp"))
 
-library(rstatix)
+SP_latency <- SP %>% 
+  select(PID, Group, contains("lat")) %>% 
+  pivot_longer(cols = Updated_SP_Congruent_LAT:Updated_SP_Switch_Yes_LAT,
+               names_to = "condition",
+               values_to = "SP_latency") %>% 
+  mutate(condition = tolower(condition),
+         condition = str_remove(condition, "updated_sp_"),
+         condition = str_remove(condition, "_lat"))
 
-SP_updated_amp <- SP_updated_amp %>% 
-  mutate(Group = as.factor(Group),
-         condition = as.factor(condition))
+# merge SP data together
+SP_long <- full_join(SP_updated_amp, SP_latency, by = c("PID", "Group", "condition"))
 
-mod <- lmer(SP_updated ~ Group*condition + (1|PID), data = SP_updated_amp %>% filter(condition %in% c("congruent", "incongruent")))
-aov_mod <- anova(mod)
+# merge all data together
+dat_long <- N200_long %>% 
+  full_join(N450_long, by = c("PID", "Group", "condition")) %>% 
+  full_join(SP_long, by = c("PID", "Group", "condition"))
 
-mod %>% 
-  emmeans(~ Group * condition) %>% 
-  contrast("pairwise", by = "Group") %>% 
-  summary(by = NULL, adjust = "mvt")
-
-
-sidcontrast(emmeans(mod, "condition"))
-
-aov_mod <- aov(SP_updated ~ Group + condition + Group*condition + Error(PID/condition), data = SP_updated_amp %>% filter(condition %in% c("congruent", "incongruent")))
-
-poo <- SP_updated_amp %>% 
-         filter(Group == 2)
-
-pairwise.t.test(poo$SP_updated, poo$condition, paired = TRUE, p.adjust.method = "fdr")
+# write long dataset to workspace
+write_csv(dat_long, "data/Analyses/dat_long.csv")
