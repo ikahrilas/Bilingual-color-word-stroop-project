@@ -72,8 +72,8 @@ N450_latency <- N450 %>%
          condition = str_remove(condition, "_small_lat"),
          condition = str_replace_all(condition, "switchy", "switch_yes"),
          condition = str_replace_all(condition, "switchn", "switch_no"),
-         condition = str_replace_all(condition, "mixedcongruent", "mixed_congruent"),
-         condition = str_replace_all(condition, "mixedingongruent", "mixed_incongruent"))
+         condition = str_replace_all(condition, "mixedcongruent", "mix_congruent"),
+         condition = str_replace_all(condition, "mixedingongruent", "mix_incongruent"))
 
 ## join all N450 data together
 N450_long <- full_join(N450_amp, N450_latency, by = c("PID", "Group", "condition"))
@@ -89,7 +89,8 @@ SP_updated_amp <- SP %>%
                values_to = "SP_mean_amp") %>% 
   mutate(condition = tolower(condition),
          condition = str_remove(condition, "updated_sp_"),
-         condition = str_remove(condition, "_amp"))
+         condition = str_remove(condition, "_amp"),
+         condition = str_replace(condition, "mixed", "mix"))
 
 SP_latency <- SP %>% 
   select(PID, Group, contains("lat")) %>% 
@@ -98,7 +99,8 @@ SP_latency <- SP %>%
                values_to = "SP_latency") %>% 
   mutate(condition = tolower(condition),
          condition = str_remove(condition, "updated_sp_"),
-         condition = str_remove(condition, "_lat"))
+         condition = str_remove(condition, "_lat"),
+         condition = str_replace(condition, "mixed", "mix"))
 
 # merge SP data together
 SP_long <- full_join(SP_updated_amp, SP_latency, by = c("PID", "Group", "condition"))
