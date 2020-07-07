@@ -6,6 +6,18 @@ library(haven)
 dat <- read_sav("data/Analyses/dat_6.26.2020.sav")
 glimpse(dat)
 
+# retain only those variables that are relevant to analyses
+dat_int <- dat %>% 
+  select(PID, 
+         Group, 
+         contains("Updated_SP"), 
+         contains("Updated_N200"),
+         (contains("N450") & contains("small", ignore.case = TRUE)),
+         Update_N200_Mix_Congruent_LAT,
+         Update_N200_Mix_Incongruent_LAT,
+         ) %>% 
+  glimpse()
+
 # restructure dataset to long form
 ## deal with N200
 N200 <- dat %>% 
