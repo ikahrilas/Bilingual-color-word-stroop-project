@@ -45,64 +45,41 @@ N200_lat <- N200 %>%
 N200_long <- full_join(N200_amp, N200_lat, by = c("PID", "Group", "condition"))
 
 # deal with N450 data
-N450 <- dat %>% 
+N450 <- dat_int %>% 
   select(PID, Group, contains("N450"))
 
 N450_amp <- N450 %>% 
   select(PID, Group, contains("mp")) %>%
-  select(PID, Group, !contains("small")) %>% 
-  pivot_longer(cols = N450_Congruent_MeanAmp:N450_Incongruent_MeanAmp,
+  pivot_longer(cols = N450_Congruent_Small_Amp:N450_SwitchNo_Small_Amp,
                names_to = "condition",
                values_to = "N450_mean_amp") %>% 
   mutate(condition = tolower(condition),
          condition = str_remove(condition, "n450_"),
-         condition = str_remove(condition, "_meanamp"))
-
-N450_small_amp <- N450 %>% 
-  select(PID, Group, contains("mp")) %>% 
-  select(PID, Group, contains("small")) %>% 
-  pivot_longer(cols = N450_Congruent_Small_Amp:N450_SwitchNo_Small_Amp,
-               names_to = "condition",
-               values_to = "N450_small_mean_amp") %>% 
-  mutate(condition = tolower(condition),
-         condition = str_remove(condition, "n450_"),
-         condition = str_remove(condition, "_small_amp"),
-         condition = str_remove(condition, "_small_mp"),
+         condition = str_remove(condition, "_small_"),
+         condition = str_remove(condition, "amp"),
+         condition = str_remove(condition, "mp"),
          condition = str_replace_all(condition, "switchyes", "switch_yes"),
-         condition = str_replace_all(condition, "switchno", "switch_no"))
+         condition = str_replace_all(condition, "switchno", "switch_no")
+         )
 
-N450_small_latency <- N450 %>% 
+N450_latency <- N450 %>% 
   select(PID, Group, contains("lat")) %>% 
-  select(PID, Group, !contains("frac")) %>% 
   pivot_longer(cols = N450_Congruent_Small_Lat:N450_SwitchN_Small_LAT,
                names_to = "condition",
-               values_to = "N450_small_latency") %>% 
+               values_to = "N450_latency") %>% 
   mutate(condition = tolower(condition),
          condition = str_remove(condition, "n450_"),
          condition = str_remove(condition, "_small_lat"),
          condition = str_replace_all(condition, "switchy", "switch_yes"),
          condition = str_replace_all(condition, "switchn", "switch_no"),
          condition = str_replace_all(condition, "mixedcongruent", "mixed_congruent"),
-         condition = str_replace_all(condition, "mixedincongruent", "mixed_incongruent"),
          condition = str_replace_all(condition, "mixedingongruent", "mixed_incongruent"))
 
-N450_frac_latency <- N450 %>% 
-  select(PID, Group, contains("lat")) %>% 
-  select(PID, Group, contains("frac")) %>% 
-  pivot_longer(cols = N450_Congruent_FracLat:N450_Incongruent_FracLat,
-               names_to = "condition",
-               values_to = "N450_frac_latency") %>% 
-  mutate(condition = tolower(condition),
-         condition = str_remove(condition, "n450_"),
-         condition = str_remove(condition, "_fraclat"))
-
 ## join all N450 data together
-N450_long <- full_join(N450_amp, N450_small_amp, by = c("PID", "Group", "condition")) %>% 
-  full_join(., N450_small_latency, by = c("PID", "Group", "condition")) %>% 
-  full_join(., N450_frac_latency, by = c("PID", "Group", "condition"))
+N450_long <- full_join(N450_amp, N450_latency, by = c("PID", "Group", "condition"))
 
 # deal with SP - for now, just run intended analysis of updated SP
-SP <- dat %>% 
+SP <- dat_int %>% 
   select(PID, Group, contains("SP"))
 
 SP_updated_amp <- SP %>% 
