@@ -31,11 +31,16 @@ sp_aov <- anova(sp_amp_mod)
 sp_amp_mod %>% 
   emmeans(~ Group * condition) %>% 
   contrast("pairwise", by = "Group") %>% 
-  summary(by = NULL, adjust = "none")
+  summary(by = NULL, adjust = "holm")
 
-# N200 frac latency analysis
-n200_lat_mod <- lmer(N200_latency ~ Group*condition + (1|PID),
+# N200 amp analysis
+n200_lat_mod <- lmer(N200_mean_amp ~ Group*condition + (1|PID),
                      data = dat %>% 
                      filter(condition %in% c("switch_no", "switch_yes")))
 ## anova for F statistic
-anova(n200_lat_mod)
+n200_aov <- anova(n200_lat_mod)
+## post-hoc comparisons
+n200_lat_mod %>% 
+  emmeans(~ Group * condition) %>% 
+  contrast("pairwise", by = "Group") %>% 
+  summary(by = NULL, adjust = "holm")
