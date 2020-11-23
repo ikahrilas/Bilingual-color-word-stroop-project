@@ -112,3 +112,7 @@ dat_long <- N200_long %>%
 
 # write long dataset to workspace
 write_csv(dat_long, "data/Analyses/dat_long.csv")
+
+# read in demographic/SES data for 2nd round of revisions
+dat_dem <- read_sav("data/All Demographics.sav")
+
