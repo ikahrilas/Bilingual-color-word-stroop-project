@@ -110,9 +110,27 @@ dat_long <- N200_long %>%
   full_join(N450_long, by = c("PID", "Group", "condition")) %>% 
   full_join(SP_long, by = c("PID", "Group", "condition"))
 
-# write long dataset to workspace
-write_csv(dat_long, "data/Analyses/dat_long.csv")
-
 # read in demographic/SES data for 2nd round of revisions
 dat_dem <- read_sav("data/All Demographics.sav")
 
+# retain family income and pid variables
+income <- dat_dem %>% 
+  select(`ID#`, Income, biormono) %>% 
+  rename(PID = `ID#`) %>% 
+  na_if(999)
+
+# convert income variable to factor
+income$Income <- factor(income$Income, levels = c("$10,000 to $20,000", 
+                                 "$30,000 to $50,000",
+                                 "$50,000 to $70,000",
+                                 "$70,000 to $90,000",
+                                 "$90,000 to $110,000",
+                                 "$110,000 to $130,000",
+                                 "$130,000 and above"),
+                        exclude = NA)
+
+# merge SES data with rest of dataset
+dat_long <- full_join(income, dat_long, by = "PID")
+
+# write long dataset to workspace
+write_csv(dat_long, "data/Analyses/dat_long.csv")
