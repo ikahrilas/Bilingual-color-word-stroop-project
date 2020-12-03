@@ -15,9 +15,32 @@ dat_int <- dat %>%
          (contains("N450") & contains("small", ignore.case = TRUE)),
          Update_N200_Mix_Congruent_LAT,
          Update_N200_Mix_Incongruent_LAT,
+         Switch_Yes_ACC:Incongruent_RT
          )
 
 # restructure data frame to long form
+## deal with accuracy scores
+acc <- dat_int %>% 
+  select(PID, Group, contains("ACC"))
+
+acc_long <- acc %>% 
+  pivot_longer(cols = Switch_Yes_ACC:Incongruent_ACC,
+               names_to = "condition",
+               values_to = "accuracy") %>% 
+  mutate(condition = tolower(condition),
+         condition = str_remove(condition, "_acc"))
+
+## deal with response time scores
+rt <- dat_int %>% 
+  select(PID, Group, contains("RT"))
+
+rt_long <- rt %>% 
+  pivot_longer(cols = Switch_Yes_RT:Incongruent_RT,
+               names_to = "condition",
+               values_to = "response_time") %>% 
+  mutate(condition = tolower(condition),
+         condition = str_remove(condition, "_rt"))
+
 ## deal with N200
 N200 <- dat_int %>% 
   select(PID, Group, contains("N200"))
@@ -108,7 +131,9 @@ SP_long <- full_join(SP_updated_amp, SP_latency, by = c("PID", "Group", "conditi
 # merge all data together
 dat_long <- N200_long %>% 
   full_join(N450_long, by = c("PID", "Group", "condition")) %>% 
-  full_join(SP_long, by = c("PID", "Group", "condition"))
+  full_join(SP_long, by = c("PID", "Group", "condition")) %>% 
+  full_join(acc_long, by = c("PID", "Group", "condition")) %>% 
+  full_join(rt_long, by = c("PID", "Group", "condition"))
 
 # read in demographic/SES data for 2nd round of revisions
 dat_dem <- read_sav("data/All Demographics.sav")
@@ -118,16 +143,6 @@ income <- dat_dem %>%
   select(`ID#`, Income, biormono) %>% 
   rename(PID = `ID#`) %>% 
   na_if(999)
-
-# convert income variable to factor
-income$Income <- factor(income$Income, levels = c("$10,000 to $20,000", 
-                                 "$30,000 to $50,000",
-                                 "$50,000 to $70,000",
-                                 "$70,000 to $90,000",
-                                 "$90,000 to $110,000",
-                                 "$110,000 to $130,000",
-                                 "$130,000 and above"),
-                        exclude = NA)
 
 # merge SES data with rest of dataset
 dat_long <- full_join(income, dat_long, by = "PID")
