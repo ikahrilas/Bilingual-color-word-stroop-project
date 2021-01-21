@@ -140,7 +140,7 @@ dat_dem <- read_sav("data/All Demographics.sav")
 
 # retain family income and pid variables
 income <- dat_dem %>% 
-  select(`ID#`, Income, biormono) %>% 
+  select(`ID#`, Income) %>% 
   rename(PID = `ID#`) %>% 
   na_if(999)
 
