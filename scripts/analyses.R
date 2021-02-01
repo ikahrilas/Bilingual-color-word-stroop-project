@@ -53,6 +53,8 @@ acc_mod <- lmer(accuracy ~ Group*condition + as.numeric(Income) + (1|PID),
                      data = dat %>% 
                      filter(condition %in% c("congruent", "incongruent")))
 
+summary(acc_mod)
+
 anova(acc_mod, type = 1) # type 1 appears to be what Laura ran in the initial analyses
 eta_squared(anova(acc_mod, type = 1))
 
@@ -71,6 +73,8 @@ eta_squared(anova(rt_mod, type = 1))
 acc_mix_mod <- lmer(accuracy ~ Group*condition + as.numeric(Income) + (1|PID),
                 data = dat %>% 
                   filter(condition %in% c("mix_congruent", "mix_incongruent")))
+
+summary(acc_mix_mod)
 
 anova(acc_mix_mod, type = 1)
 eta_squared(anova(acc_mix_mod, type = 1))
