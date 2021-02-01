@@ -44,6 +44,10 @@ ses_mod <- boot.t.test(x = as.numeric(mono_income),
 ### there are significant differences in income between the two groups
 ses_mod
 
+#########################
+# behavioral data #
+#########################
+
 # accuracy blocked trials
 acc_mod <- lmer(accuracy ~ Group*condition + as.numeric(Income) + (1|PID),
                      data = dat %>% 
@@ -105,48 +109,152 @@ emmeans(acc_mix_mod, data = filter(dat, condition %in% c("congruent", "incongrue
   contrast("pairwise", by = "condition", adjust = "holm")
 
 
-# old code that used to work
-# acc_mod %>% 
-#   emmeans(~ Group) %>% 
-#   contrast("pairwise", by = "Group") %>% 
-#   summary(by = NULL, adjust = "holm")
+####################################################################################
+# EEG data ## ordered commensurately with how they are presented in results section
+####################################################################################
+
+# N200 amplitude pure blocks
+n200_amp_pure_mod <- lmer(N200_mean_amp ~ Group*condition + as.numeric(Income) + (1|PID),
+                          data = dat %>% 
+                          filter(condition %in% c("congruent", "incongruent")))
+
+anova(n200_amp_pure_mod, type = 1)
+eta_squared(anova(n200_amp_pure_mod, type = 1))
+
+# N200 latency pure blocks
+n200_lat_pure_mod <- lmer(N200_latency ~ Group*condition + as.numeric(Income) + (1|PID),
+                          data = dat %>% 
+                            filter(condition %in% c("congruent", "incongruent")))
+
+anova(n200_lat_pure_mod, type = 1)
+eta_squared(anova(n200_lat_pure_mod, type = 1))
+
+# N450 amplitude pure blocks
+n450_amp_pure_mod <- lmer(N450_mean_amp ~ Group*condition + as.numeric(Income) + (1|PID),
+                          data = dat %>% 
+                            filter(condition %in% c("congruent", "incongruent")))
+
+anova(n450_amp_pure_mod, type = 1)
+eta_squared(anova(n450_amp_pure_mod, type = 1))
+
+## follow up post hoc tests
+emmeans(n450_amp_pure_mod, data = filter(dat, condition %in% c("congruent", "incongruent")), ~ Group*condition) %>% 
+  contrast("pairwise", by = "condition", adjust = "holm") %>% 
+  summary(by = NULL)
+
+# N450 latency pure blocks
+n450_lat_pure_mod <- lmer(N450_latency ~ Group*condition + as.numeric(Income) + (1|PID),
+                          data = dat %>% 
+                            filter(condition %in% c("congruent", "incongruent")))
+
+anova(n450_lat_pure_mod, type = 1)
+eta_squared(anova(n450_lat_pure_mod, type = 1))
+
+# SP amplitude pure blocks
+sp_lat_pure_mod <- lmer(SP_mean_amp ~ Group*condition + as.numeric(Income) + (1|PID),
+                          data = dat %>% 
+                            filter(condition %in% c("congruent", "incongruent")))
+
+anova(sp_lat_pure_mod, type = 1)
+eta_squared(anova(sp_lat_pure_mod, type = 1))
+
+## follow up post hoc tests
+emmeans(sp_lat_pure_mod, data = filter(dat, condition %in% c("congruent", "incongruent")), ~ Group*condition) %>% 
+  contrast("pairwise", by = "condition", adjust = "Holm") %>% 
+  summary(by = NULL)
+
+# N200 amplitude mixed trials
+n200_amp_mix_mod <- lmer(N200_mean_amp ~ Group*condition + as.numeric(Income) + (1|PID),
+                          data = dat %>% 
+                            filter(condition %in% c("mix_congruent", "mix_incongruent")))
+
+anova(n200_amp_mix_mod, type = 1)
+eta_squared(anova(n200_amp_mix_mod, type = 1))
+
+# N200 latency mixed trials
+n200_lat_mix_mod <- lmer(N200_latency ~ Group*condition + as.numeric(Income) + (1|PID),
+                          data = dat %>% 
+                            filter(condition %in% c("mix_congruent", "mix_incongruent")))
+
+anova(n200_lat_mix_mod, type = 1)
+eta_squared(anova(n200_lat_mix_mod, type = 1))
+
+# N450 amplitude mixed trials
+n450_amp_mix_mod <- lmer(N450_mean_amp ~ Group*condition + as.numeric(Income) + (1|PID),
+                         data = dat %>% 
+                           filter(condition %in% c("mix_congruent", "mix_incongruent")))
+
+anova(n450_amp_mix_mod, type = 1)
+eta_squared(anova(n450_amp_mix_mod, type = 1))
+
+# N450 latency mixed trials
+n450_lat_mix_mod <- lmer(N450_latency ~ Group*condition + as.numeric(Income) + (1|PID),
+                         data = dat %>% 
+                           filter(condition %in% c("mix_congruent", "mix_incongruent")))
+
+anova(n450_lat_mix_mod, type = 1)
+eta_squared(anova(n450_lat_mix_mod, type = 1))
+
+# SP amplitude mixed trials
+sp_amp_mix_mod <- lmer(SP_mean_amp ~ Group*condition + as.numeric(Income) + (1|PID),
+                        data = dat %>% 
+                          filter(condition %in% c("mix_congruent", "mix_incongruent")))
+
+anova(sp_amp_mix_mod, type = 1)
+eta_squared(anova(sp_amp_mix_mod, type = 1))
+
+# N200 amplitude switch blocks
+n200_amp_switch_mod <- lmer(N200_mean_amp ~ Group*condition + as.numeric(Income) + (1|PID),
+                          data = dat %>% 
+                            filter(condition %in% c("switch_no", "switch_yes")))
+
+anova(n200_amp_switch_mod, type = 1)
+eta_squared(anova(n200_amp_switch_mod, type = 1))
+
+## follow up post hoc tests
+emmeans(n200_amp_switch_mod, data = filter(dat, condition %in% c("switch_no", "switch_yes")), ~ Group*condition) %>% 
+  contrast("pairwise", by = "condition", adjust = "Holm") %>% 
+  summary(by = NULL)
 
 
-# N450 analysis
-n450_amp_mod <- lmer(N450_mean_amp ~ Group*condition + as.numeric(Income) + (1|PID),
-                     data = dat %>% 
-                     filter(condition %in% c("congruent", "incongruent")))
+# N200 latency switch blocks
+n200_lat_switch_mod <- lmer(N200_latency ~ Group*condition + as.numeric(Income) + (1|PID),
+                          data = dat %>% 
+                            filter(condition %in% c("switch_no", "switch_yes")))
 
-## anova for F statistic
-n450_aov <- anova(n450_amp_mod)
-eta_squared(n450_aov)
+anova(n200_lat_switch_mod, type = 1)
+eta_squared(anova(n200_lat_switch_mod, type = 1))
 
-## post-hoc comparisons
-n450_amp_mod %>% 
-  emmeans(~ Group * condition) %>% 
-  contrast("pairwise", by = "Group") %>% 
-  summary(by = NULL, adjust = "holm")
 
-# SP
-sp_amp_mod <- lmer(SP_mean_amp ~ Group*condition + (1|PID),
-                     data = dat %>% 
-                     filter(condition %in% c("congruent", "incongruent")))
-## anova for F statistic
-sp_aov <- anova(sp_amp_mod)
-## post-hoc comparisons
-sp_amp_mod %>% 
-  emmeans(~ Group * condition) %>% 
-  contrast("pairwise", by = "Group") %>% 
-  summary(by = NULL, adjust = "holm")
 
-# N200 amp analysis
-n200_lat_mod <- lmer(N200_mean_amp ~ Group*condition + (1|PID),
-                     data = dat %>% 
-                     filter(condition %in% c("switch_no", "switch_yes")))
-## anova for F statistic
-n200_aov <- anova(n200_lat_mod)
-## post-hoc comparisons
-n200_lat_mod %>% 
-  emmeans(~ Group * condition) %>% 
-  contrast("pairwise", by = "Group") %>% 
-  summary(by = NULL, adjust = "holm")
+# N450 amplitude switch blocks
+n450_amp_switch_mod <- lmer(N450_mean_amp ~ Group*condition + as.numeric(Income) + (1|PID),
+                            data = dat %>% 
+                              filter(condition %in% c("switch_no", "switch_yes")))
+
+anova(n450_amp_switch_mod, type = 1)
+eta_squared(anova(n450_amp_switch_mod, type = 1))
+
+## follow up post hoc tests
+emmeans(n450_amp_switch_mod, data = filter(dat, condition %in% c("switch_no", "switch_yes")), ~ Group*condition) %>% 
+  contrast("pairwise", by = "condition", adjust = "Holm") %>% 
+  summary(by = NULL)
+
+
+# N450 latency switch blocks
+n450_lat_switch_mod <- lmer(N450_latency ~ Group*condition + as.numeric(Income) + (1|PID),
+                            data = dat %>% 
+                              filter(condition %in% c("switch_no", "switch_yes")))
+
+anova(n450_lat_switch_mod, type = 1)
+eta_squared(anova(n450_lat_switch_mod, type = 1))
+
+
+# SP amplitude switch trials
+sp_amp_switch_mod <- lmer(SP_mean_amp ~ Group*condition + as.numeric(Income) + (1|PID),
+                       data = dat %>% 
+                         filter(condition %in% c("switch_no", "switch_yes")))
+
+anova(sp_amp_switch_mod, type = 1)
+eta_squared(anova(sp_amp_switch_mod, type = 1))
+
