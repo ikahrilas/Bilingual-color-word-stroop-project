@@ -147,5 +147,8 @@ income <- dat_dem %>%
 # merge SES data with rest of dataset
 dat_long <- full_join(income, dat_long, by = "PID")
 
+# turn "mixed" into "mix" for condition types
+dat_long$condition <- str_replace(dat_long$condition, "mixed", "mix")
+
 # write long dataset to workspace
 write_csv(dat_long, "data/Analyses/dat_long.csv")
