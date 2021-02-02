@@ -79,6 +79,8 @@ summary(acc_mix_mod)
 anova(acc_mix_mod, type = 1)
 eta_squared(anova(acc_mix_mod, type = 1))
 
+emmeans(acc_mix_mod, data = filter(dat, condition %in% c("congruent", "incongruent")), ~ Income)
+
 emmeans(acc_mix_mod, data = filter(dat, condition %in% c("congruent", "incongruent")), ~ Group*condition) %>% 
   contrast("pairwise", by = "condition", adjust = "holm")
 
@@ -98,9 +100,6 @@ acc_switch_mod <- lmer(accuracy ~ Group*condition + Income + (1|PID),
 anova(acc_switch_mod, type = 1)
 eta_squared(anova(acc_switch_mod, type = 1))
 
-emmeans(acc_mix_mod, data = filter(dat, condition %in% c("congruent", "incongruent")), ~ Group*condition) %>% 
-  contrast("pairwise", by = "condition", adjust = "holm")
-
 # response time switch
 rt_switch_mod <- lmer(response_time ~ Group*condition + Income + (1|PID),
                        data = dat %>% 
@@ -114,7 +113,7 @@ emmeans(acc_mix_mod, data = filter(dat, condition %in% c("congruent", "incongrue
 
 
 ####################################################################################
-# EEG data ## ordered commensurately with how they are presented in results section
+# EEG data ## ordered according to how they are presented in results section
 ####################################################################################
 
 # N200 amplitude pure blocks
@@ -143,7 +142,7 @@ eta_squared(anova(n450_amp_pure_mod, type = 1))
 
 ## follow up post hoc tests
 emmeans(n450_amp_pure_mod, data = filter(dat, condition %in% c("congruent", "incongruent")), ~ Group*condition) %>% 
-  contrast("pairwise", by = "Group", adjust = "holm") %>% 
+  contrast("pairwise", by = "condition", adjust = "holm") %>% 
   summary(by = NULL)
 
 # N450 latency pure blocks
@@ -164,7 +163,7 @@ eta_squared(anova(sp_lat_pure_mod, type = 1))
 
 ## follow up post hoc tests
 emmeans(sp_lat_pure_mod, data = filter(dat, condition %in% c("congruent", "incongruent")), ~ Group*condition) %>% 
-  contrast("pairwise", by = "Group", adjust = "Holm") %>% 
+  contrast("pairwise", by = "condition", adjust = "Holm") %>% 
   summary(by = NULL)
 
 # N200 amplitude mixed trials
