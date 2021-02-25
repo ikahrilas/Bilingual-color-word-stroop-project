@@ -142,7 +142,8 @@ dat_dem <- read_sav("data/All Demographics.sav")
 income <- dat_dem %>% 
   select(`ID#`, Income) %>% 
   rename(PID = `ID#`) %>% 
-  na_if(999)
+  na_if(999) %>% 
+  na_if("")
 
 # merge SES data with rest of dataset
 dat_long <- full_join(income, dat_long, by = "PID")
